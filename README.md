@@ -1,4 +1,34 @@
-# AYUTTHAYA SIMULATOR — PHASE 01 + PHASE 02 + PHASE 03 + PHASE 04 + PHASE 05 + PHASE 06 + PHASE 07 + PHASE 08 + PHASE 09 + PHASE 10 + PHASE 11 + PHASE 12 + PHASE 13
+# AYUTTHAYA SIMULATOR — PHASE 01 + PHASE 02 + PHASE 03 + PHASE 04 + PHASE 05 + PHASE 06 + PHASE 07 + PHASE 08 + PHASE 09 + PHASE 10 + PHASE 11 + PHASE 12 + PHASE 13 + PHASE 14 + PHASE 15 + PHASE 16 + PHASE 17 + PHASE 18
+
+## Phase 18 scope / ขอบเขตเฟส 18
+
+Phase 18 adds Windows production-build preparation: build profiles, Editor validation/build commands, release manifest/versioning, runtime configuration, crash-log capture, dedicated-server deployment and shutdown guidance, packaging/checksum expectations, rollback procedures, tests, and bilingual release documentation.
+
+เฟส 18 เพิ่มการเตรียม production build สำหรับ Windows: build profile, validation/build command ใน Editor, release manifest/version, runtime config, crash log, deployment/dedicated server, shutdown, packaging/checksum, rollback, tests และเอกสาร release ไทย/อังกฤษ
+
+## Phase 17 scope / ขอบเขตเฟส 17
+
+Phase 17 adds comprehensive QA assets: EditMode contract tests, PlayMode integration fixtures, multiplayer test gates, latency/loss adapter, test matrix, reproducible bug-report template, and bilingual QA operations manuals.
+
+เฟส 17 เพิ่มระบบ QA แบบครบถ้วน: EditMode contract tests, PlayMode integration fixtures, multiplayer test gates, latency/loss adapter, test matrix, แบบฟอร์ม bug report ที่ทำซ้ำได้ และคู่มือ QA ไทย/อังกฤษ
+
+## Phase 16 scope / ขอบเขตเฟส 16
+
+Phase 16 adds performance instrumentation and scalable runtime controls for a large open world: CPU/GPU/memory/draw-call/physics/network telemetry contracts, reproducible benchmark scenarios, LOD/quality controls, culling guidance, GPU instancing, pooling, additive-streaming budgets, AI tick budgets, terrain detail controls, and benchmark report structure.
+
+เฟส 16 เพิ่ม instrumentation และ runtime controls สำหรับ open world ขนาดใหญ่: telemetry ของ CPU/GPU/memory/draw call/physics/network, benchmark scenario ที่ทำซ้ำได้, LOD/quality, culling, GPU instancing, pooling, streaming budget, AI tick budget, terrain detail และโครงสร้าง benchmark report
+
+## Phase 15 scope / ขอบเขตเฟส 15
+
+Phase 15 adds a responsive UI presentation layer for HUD, minimap, pause, inventory, wallet, jobs, quests, shops, farming, vehicle, settings, multiplayer lobby, and notifications. It includes Thai/English key-based localization, saved language preferences, font/asset fallback guidance, plural-ready text, and overflow validation.
+
+เฟส 15 เพิ่มชั้น UI แบบ responsive สำหรับ HUD, minimap, pause, inventory, wallet, jobs, quests, shop, farming, vehicle, settings, multiplayer lobby และ notifications พร้อม localization ไทย/อังกฤษแบบ key, บันทึกภาษาที่เลือก, แนวทาง font/asset fallback, pluralization และ overflow validation
+
+## Phase 14 scope / ขอบเขตเฟส 14
+
+Phase 14 adds multiplayer hardening and operations contracts: server-authoritative mutation gates, request/session validation, token-bucket rate limiting, movement sanity checks, observability counters, graceful drain/shutdown, secure transport configuration requirements, shard/zone allocation interfaces, load-balancer registration contracts, and bounded load-test instrumentation.
+
+เฟส 14 เพิ่ม contract สำหรับ hardening และ operations ของ multiplayer: server authority gate, request/session validation, rate limit แบบ token bucket, movement sanity check, observability counters, graceful drain/shutdown, ข้อกำหนด secure transport, interface จัด shard/zone, load balancer registration และ load-test instrumentation แบบมีขอบเขต
 
 ## Phase 13 scope / ขอบเขตเฟส 13
 
@@ -318,6 +348,95 @@ This slice assumes the server is authoritative and the client is untrusted. It v
 
 The repository contains client contracts and a local atomic writer, not a production database or identity provider. Deployment must add TLS/authentication, token expiry/refresh, authorization by account ID, idempotency keys, durable audit logging, revision conflicts, backups, retention, monitoring, and restore drills. Treat `NotAuthenticated`, `ValidationFailed`, `Conflict`, `NetworkUnavailable`, `MigrationFailed`, `WriteFailed`, and `CorruptBackup` as distinct user-visible states; never convert them into a silent success.
 
+## Phase 14 operations setup / การตั้งค่า operations
+
+1. Add `ServerRequestGuard`, `SessionAuthorizationService`, `ServerAuthorityGate`, and `MovementSanityValidator` to the server world. Route economy, inventory, farming, property, quest, and interaction intents through these guards before invoking the existing authoritative services.
+2. Use `ServerRequest` with a server-issued request ID/idempotency key. Validate account/session, operation type, payload bounds, ownership, cooldown/rate limit, and current server state. The client never submits authoritative balances, inventory totals, farm quality, property ownership, quest rewards, or final position.
+3. Configure movement limits per mode/vehicle and treat rejected movement as telemetry plus server correction, not as client truth. Tune `maxSpeed`, vertical tolerance, and delta-time for the actual character/vehicle adapters.
+4. Add `ServerObservability` and export its counters to the deployment telemetry adapter. At minimum monitor accepted/rejected requests, rate-limit hits, invalid sessions, movement rejects, disconnects, shard allocations, save conflicts, and transaction failures.
+5. Add `GracefulServerShutdown` with drain handlers. Stop accepting new sessions, notify clients through the networking adapter, finish bounded persistence writes, release shard registration, then terminate. Do not claim seamless migration; this code only defines drain contracts.
+6. Implement `IShardAllocator` and `ILoadBalancerRegistration` against the chosen backend. Zone allocation returns an endpoint and shard ID; the client reconnects to that endpoint. Seamless state migration is not implemented by this repository.
+7. Create `TransportSecurityConfig`. Production must use an authenticated/encrypted Relay or equivalent transport adapter. Direct IP is development-only; this repository does not claim to provide TLS/DTLS by itself.
+8. Use `LoadTestHarness` only in a dedicated test build and connect its counters to a real request generator/metrics sink. It does not simulate real network latency or prove capacity.
+
+### Threat model / threat model
+
+Assume clients can modify binaries, replay requests, alter timing/position, forge prices/rewards, disconnect during commits, flood RPCs, and attempt cross-account access. Defenses in this phase are server authority gates, session validation, rate limits, request IDs, idempotent existing ledgers, movement sanity checks, ownership validation, audit/observability hooks, and explicit drain/reconnect contracts. Authentication provider security, key management, DDoS protection, encrypted transport, database isolation, and anti-cheat response remain deployment responsibilities.
+
+### PHASE 14 acceptance / เกณฑ์ผ่าน
+
+- Unauthorized sessions cannot mutate protected systems.
+- Rate limits reject bursts without blocking unrelated accounts.
+- Teleport-like movement is rejected and observable.
+- Replayed request IDs/rewards are rejected by the relevant authority/ledger.
+- Shutdown enters drain state and exposes handler completion.
+- Shard and load-balancer adapters can allocate/release instances without claiming seamless migration.
+- Production transport refuses to be treated as secure until an authenticated/encrypted adapter is configured.
+
+## Phase 15 UI setup / การตั้งค่า UI
+
+1. The project includes `com.unity.localization` `1.5.13`; Unity documents String Tables, Smart Strings, locale management, CSV import/export, pseudo-localization, and asset localization in the Localization package【https://docs.unity.com/en-us/engine/6000.5/manual/packages-list/packages-all/pack-safe/com-unity-localization】. Confirm the exact released package version in the target Unity 6 editor before locking production.
+2. Create one Canvas or UI Toolkit root with responsive anchors. Add `UiEventBus`, `UiPanelController`, and one `ResponsivePanel` for each `UiPanelId`: HUD, Minimap, Pause, Inventory, Wallet, Jobs, Quests, Shop, Farming, Vehicle, Settings, Lobby, Notifications.
+3. Connect existing `LifeUIModel`, `EconomyUIModel`, `QuestUIModel`, `PropertyUIModel`, `FarmUIModel`, `NetworkLobby`, and `PersistenceUIModel` to presenter scripts or adapters. UI only displays state and sends intent; it never mutates authoritative economy, quest, property, farm, or multiplayer data directly.
+4. Create a Unity Localization String Table from `Assets/UI/Translations.csv`, or use `TranslationTable` for lightweight offline fallback. Use stable keys such as `hud.wallet`, `menu.inventory`, and `notification.items`.
+5. Add Thai and English locales. Configure a Thai-capable primary font plus fallback fonts covering Thai combining marks, Latin, currency symbols, and numerals. Keep font assets in a localized asset table if visual variants are required.
+6. Use Smart Strings/plural rules in Unity Localization for production pluralization. `LocalizationPreferenceService.GetPlural` is a lightweight fallback and replaces `{count}`; it is not a full grammatical plural engine.
+7. Save language choice through `LocalizationPreferenceService`; production can mirror it to the Phase 13 account profile after server authorization.
+8. Add `UiTextOverflowValidator` to fixed-size labels and test Thai, English, long quest names, large baht values, and `{count}` plural strings at compact and wide resolutions. Prefer wrapping/ellipsis rules over truncating gameplay-critical values.
+9. Use `NotificationPresenter` for save failures, reconnect state, quest rewards, purchase results, and server rejection messages. Notifications are presentation only and must be driven by result events.
+
+### UI acceptance / เกณฑ์ผ่าน
+
+- All listed panels open/close through `UiEventBus` and resize through `ResponsivePanel`.
+- Thai and English strings resolve through stable keys with missing-key fallback.
+- Language preference survives restart and can be mirrored to an authenticated profile.
+- Thai font fallback renders combining marks and English fallback renders Latin/currency.
+- Long text and large numbers pass overflow checks at compact and wide layouts.
+- UI cannot grant currency, inventory, quest rewards, farming results, or multiplayer authority.
+
+## Phase 16 optimization setup / การตั้งค่า optimization
+
+1. Create a `BenchmarkScenario` asset for each reproducible workload. Record scene path, deterministic seed, duration, NPC/vehicle/tile counts, renderer path, hardware description, and exact requested metrics.
+2. Build benchmark scenes with fixed seed, fixed camera route, fixed time/weather, fixed network mode, and fixed streamed tile set. Capture a Development/Release build consistently; do not compare Editor and Player runs as if they were equivalent.
+3. Add `PerformanceTelemetry` and `BenchmarkReportWriter`. It samples Unity ProfilerRecorder values where available and records a report structure; missing CPU/GPU/physics/network adapters must remain missing, not become invented zeros.
+4. Add `QualityPreset` assets for Low/Medium/High/Ultra. Apply LOD bias, shadow cascades, render scale, terrain detail distance, NPC tick budget, occlusion, and instancing policy through a runtime adapter.
+5. Configure LOD Groups on buildings, vegetation, vehicles, and NPC visuals. Use frustum culling and baked/runtime occlusion only after verifying that GIS-streamed geometry has correct occlusion volumes; never cull gameplay colliders that must remain authoritative.
+6. Use `InstancedMeshBatch` only for identical non-interactive meshes with an instancing-enabled material. Keep interactive/unique objects on pooled prefabs; do not instance objects that require individual colliders or per-object animation.
+7. Use `ObjectPool` for civilians, vehicles, effects, and notifications. Reset ownership, physics, animator, network state, and subscriptions before returning an object to the pool.
+8. Add `AITickBudget` and configure NPC updates through a rotating budget. Add `WorldStreamingBudget` to limit additive scene/terrain tile operations per frame and measure streaming latency separately.
+9. Use the existing `NPCSimulationManager`, `AdditiveTileLoader`, and network/persistence systems as workload inputs. Add adapters for physics time, GPU timing, network bytes, and streamed-scene timing in the benchmark build.
+
+### Measurement policy / นโยบายการวัดผล
+
+No FPS, frame-time, draw-call, memory, or bandwidth result is claimed by this repository because no sealed Unity run bundle or hardware capture exists here. A valid report must include comparable scene/seed/workload/build/renderer/hardware metadata, verified telemetry, correctness signals, and baseline/candidate comparison. Optimize one named metric at a time with a bounded iteration count; do not attribute causality from arithmetic alone.
+
+### Performance acceptance / เกณฑ์ผ่าน
+
+- Benchmark scenarios are deterministic and include workload metadata.
+- Telemetry reports identify missing metrics rather than fabricating values.
+- Quality presets change runtime budgets and visual settings predictably.
+- Pools reuse objects without stale state or subscriptions.
+- AI and streaming work are bounded per frame.
+- LOD/culling/instancing preserve gameplay correctness.
+- Measured results are reported only after Unity Editor/build capture and verification.
+
+## Phase 17 QA setup / การตั้งค่า QA
+
+1. Import the tests under `Assets/Tests/EditMode` and `Assets/Tests/PlayMode` into Unity Test Runner. Run EditMode first, then PlayMode with a dedicated test scene.
+2. Use `QA/TestMatrix.csv` as the release gate. `Source covered` means the contract is represented in code/tests; `Pending Unity run` means it still requires Unity Editor, PlayMode, Multiplayer Play Mode, or a standalone build.
+3. For two-client tests, run one host/server and two clients with the same build and scene. Verify distinct ownership, movement sync/interpolation, invalid transaction rejection, reconnect recovery, and graceful disconnect. Do not convert the placeholder gate into a pass without recorded run evidence.
+4. Use `LatencyTestAdapter` in a test-only build with declared latency/loss values. Record measured correction, disconnect, and transaction behavior; do not infer network quality from source inspection.
+5. Use `QA/BugReportTemplate.md` for every failure. Include build hash, scene, seed, account/shard, reproduction rate, logs, telemetry, and expected/actual behavior.
+6. Read `QA/README.md` for Thai/English test execution, severity, evidence, and release-gate instructions.
+
+## Phase 18 release setup / การตั้งค่า release
+
+1. Create `BuildProfile` assets for Windows client and dedicated server. Select one profile and run `Ayutthaya/Build/Validate Selected Profile`.
+2. Use `Ayutthaya/Build/Build Windows Client` or `Ayutthaya/Build/Build Windows Dedicated Server` from Unity Editor after PlayMode smoke tests pass.
+3. Update `RELEASE_MANIFEST.json` from the actual release commit, package lock, Unity version, artifact paths, content revision, and checksums. Do not use the example version as evidence of a built artifact.
+4. Copy `BUILD_CONFIG.example.json` into the build’s `StreamingAssets/BuildConfig.json` and set environment endpoint/revision values without committing secrets.
+5. Follow [RELEASE_MANUAL.md](RELEASE_MANUAL.md) for installation, server administration, crash logs, graceful shutdown, rollback, architecture, and known limitations.
+
 ## Data accuracy and licensing / ความแม่นยำและใบอนุญาต
 
 OpenStreetMap data is governed by ODbL and requires attribution; downstream database/share-alike obligations must be reviewed before distribution. Copernicus DEM is a DSM rather than a bare terrain DTM, and the selected instance, access class, release, and license notice must be recorded in the manifest. The importer therefore refuses to treat missing metadata as proof of accuracy. Source resolution, capture date, CRS, vertical datum, and missing geometry must remain visible in the manifest and build report.
@@ -328,4 +447,4 @@ The current repository contains no OSM extract, DEM, aerial imagery, buildings, 
 
 ## Next phase gate
 
-Do not start Phase 05 until the Phase 04 controller is generated in Unity, a valid Humanoid Avatar is assigned, placeholder clips are replaced or explicitly approved, animation events are manually tested, and EditMode tests pass.
+PHASE 18 release gate: Unity Editor package resolution, BuildProfile validation, EditMode tests, PlayMode smoke tests, Windows client/server build, configuration injection, crash-log verification, dedicated-server health check, artifact checksums/signing, rollback drill, and manual installation/network/firewall verification must pass before release claims are made.

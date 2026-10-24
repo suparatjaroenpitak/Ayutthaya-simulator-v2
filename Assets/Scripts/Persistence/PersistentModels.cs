@@ -13,7 +13,7 @@ namespace AyutthayaSimulator.Persistence
     }
     [Serializable] public sealed class PersistentSaveEnvelope
     {
-        public int schemaVersion = 1; public string saveId; public string createdAtUtc; public PersistentPlayerData player = new PersistentPlayerData(); public PersistentWorldData world = new PersistentWorldData();
+        public int schemaVersion = 1; public string saveId; public string revision; public string createdAtUtc; public PersistentPlayerData player = new PersistentPlayerData(); public PersistentWorldData world = new PersistentWorldData();
     }
     public enum PersistenceFailure { None, NotAuthenticated, ValidationFailed, Conflict, NetworkUnavailable, SerializationFailed, WriteFailed, MigrationFailed, CorruptBackup }
     public readonly struct PersistenceResult { public readonly bool success; public readonly PersistenceFailure failure; public readonly string message; public PersistenceResult(bool ok, PersistenceFailure reason, string text) { success = ok; failure = reason; message = text; } public static PersistenceResult Ok() => new PersistenceResult(true, PersistenceFailure.None, string.Empty); public static PersistenceResult Fail(PersistenceFailure reason, string message) => new PersistenceResult(false, reason, message); }

@@ -1,0 +1,13 @@
+ID,Area,Mode,Test,Expected,Automation,Status
+P-001,Player,PlayMode,Move/walk/run/jump on ground,No fall-through and bounded movement,GameplayPlayModeTests,Pending Unity run
+P-002,World,PlayMode,Terrain and mesh collision,Grounded collision remains stable,Manual+PlayMode,Pending Unity run
+P-003,Persistence,EditMode,Save/load and migration,Versioned data restores or reports failure,QATestContracts,Source covered
+E-001,Economy,EditMode,Negative/duplicate/overspend transaction,Rejected without state mutation,EconomyTests+QATestContracts,Source covered
+F-001,Farming,EditMode,Plot lifecycle and invalid harvest,Invalid actions rejected,FarmingTests+QATestContracts,Source covered
+Q-001,Quests,EditMode,Prerequisites/objectives/replay reward,No duplicate completion reward,NarrativeTests+QATestContracts,Source covered
+N-001,NPC,EditMode,Schedule and LOD budget,Correct schedule and bounded ticks,NPCSimulationTests,Source covered
+V-001,Vehicles,EditMode,Input/fuel/traffic/parking,Authority and physics contracts hold,VehicleSystemTests,Source covered
+MP-001,Multiplayer,PlayMode,Two clients spawn and move separately,Owner-only movement and interpolation,MultiplayerPlayModeTests,Pending Multiplayer Play Mode
+MP-002,Multiplayer,PlayMode,Reconnect and graceful disconnect,State recovers or reports failure,Manual+NetworkHarness,Pending Unity run
+MP-003,Multiplayer,PlayMode,Invalid transaction/authority violation,Server rejects intent,MultiplayerPlayModeTests,Pending Unity run
+MP-004,Multiplayer,PlayMode,Latency/loss scenario,No crash; bounded correction and telemetry,LatencyTestAdapter,Pending network harness

@@ -1,0 +1,7 @@
+{
+  "environment": "production",
+  "serverEndpoint": "https://set-by-deployment.example.invalid",
+  "buildVersion": "0.18.0",
+  "contentRevision": "set-from-release-commit",
+  "onlineEnabled": true
+}

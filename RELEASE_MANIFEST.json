@@ -1,0 +1,11 @@
+{
+  "product": "AYUTTHAYA SIMULATOR",
+  "version": "0.18.0",
+  "channel": "internal",
+  "platform": "Windows x64",
+  "contentRevision": "set-from-release-commit",
+  "clientArtifact": "Builds/WindowsClient/AyutthayaSimulator.exe",
+  "serverArtifact": "Builds/WindowsServer/AyutthayaSimulator.exe",
+  "configuration": "StreamingAssets/BuildConfig.json",
+  "rollback": "Deploy previous signed manifest and matching artifacts; never mix client/server revisions."
+}
