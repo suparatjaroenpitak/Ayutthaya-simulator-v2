@@ -1,4 +1,28 @@
-# AYUTTHAYA SIMULATOR — PHASE 01 + PHASE 02 + PHASE 03 + PHASE 04 + PHASE 05 + PHASE 06 + PHASE 07
+# AYUTTHAYA SIMULATOR — PHASE 01 + PHASE 02 + PHASE 03 + PHASE 04 + PHASE 05 + PHASE 06 + PHASE 07 + PHASE 08 + PHASE 09 + PHASE 10 + PHASE 11
+
+## Phase 11 scope / ขอบเขตเฟส 11
+
+Phase 11 adds an original narrative and quest layer for Somchai's return to Ayutthaya in 2026: branching/localized dialogue, quest prerequisites, objective tracking, NPC relationship checks, mission rewards, story flags, replay-safe completion, UI events, and a server authority boundary.
+
+เฟส 11 เพิ่มระบบเนื้อเรื่องและเควสต์ต้นฉบับสำหรับสมชายที่กลับอยุธยาในปี 2026: บทสนทนาแบบเลือกทางและหลายภาษา, prerequisite, objective tracking, relationship กับ NPC, reward, story flags, completion ที่ replay-safe, UI event และ server authority boundary
+
+## Phase 10 scope / ขอบเขตเฟส 10
+
+Phase 10 adds housing, land, and business property gameplay: enterable doors, streamed interiors, property definitions and ownership, renting and purchasing, furniture placement, farm-land and shop property types, persistent decoration IDs, UI state hooks, and server-side ownership validation.
+
+เฟส 10 เพิ่มระบบบ้าน ที่ดิน และทรัพย์สินธุรกิจ: ประตูเข้าได้, interior แบบ streamed, property definition/ownership, เช่า/ซื้อ, วางเฟอร์นิเจอร์, ประเภทที่ดินฟาร์มและร้านค้า, decoration ID แบบถาวร, UI hook และ server validation ของสิทธิ์
+
+## Phase 09 scope / ขอบเขตเฟส 09
+
+Phase 09 adds an original economy and employment layer: Thai baht stored as integer satang, wallet, bank account, shops, configurable product prices, inventory, atomic purchases/sales, legal civilian jobs, wages, delivery/farming/repair income, job progression, audit logs, idempotent reward protection, UI hooks, and server-side validation boundaries.
+
+เฟส 09 เพิ่มระบบเศรษฐกิจและงาน: เงินบาทเก็บเป็นจำนวนสตางค์แบบ integer, wallet, bank account, shops, product price ที่ตั้งค่าได้, inventory, ซื้อ/ขายแบบ atomic, งานพลเรือนที่ถูกกฎหมาย, ค่าจ้าง, รายได้ส่งของ/ฟาร์ม/ซ่อม, progression, audit log, ป้องกัน reward ซ้ำ, UI hook และ server validation boundary
+
+## Phase 08 scope / ขอบเขตเฟส 08
+
+Phase 08 adds Somchai daily-life systems: tunable hunger, energy, stamina, basic health, sleep, eating, cooking, rest, household utilities, time-of-day, day calendar, weather interfaces, non-punitive recovery, UI state events, versioned save/load, and server-side validation boundaries.
+
+เฟส 08 เพิ่มระบบชีวิตประจำวันของสมชาย: hunger, energy, stamina, health พื้นฐาน, sleep, eating, cooking, rest, utility ในบ้าน, เวลา, ปฏิทินวัน, interface สภาพอากาศ, recovery ที่ไม่ลงโทษ, UI event, save/load แบบมี version และ server validation boundary
 
 ## Phase 07 scope / ขอบเขตเฟส 07
 
@@ -165,6 +189,82 @@ Ground safety uses CharacterController collision resolution plus a non-trigger S
 - Storage capacity prevents overfilling; sales cannot remove more produce than stored.
 - Farm persistence is versioned and separate from player save data.
 - Tests cover season/progression/storage contracts; Unity Editor validation must cover actual plot prefabs, UI, animations, and save/load scenes.
+
+## Phase 08 life setup / การตั้งค่า life systems
+
+1. Create `LifeBalanceConfig` from `Ayutthaya/Life/Life Balance Config`. Recommended sample balancing values: max hunger/energy/stamina/health `100`; hunger drain `2` per real minute; energy drain `1`; stamina recovery `18`; sleep energy recovery `28`; passive health recovery `0.5`; low-need recovery threshold `10`.
+2. Add `LifeClock` to a persistent world object. Set `gameMinutesPerRealSecond` for the desired game pace; it emits `TimeChanged(day, minuteOfDay)` and wraps across midnight.
+3. Add `LifeSimulation` to Somchai, assign the balance config, clock, and a component implementing `IWeatherProvider`. It emits `StateChanged` for UI and other systems.
+4. Add `LifeActions` to Somchai or an interaction proxy. Eating and cooking restore hunger; resting restores energy/stamina; sleep changes the sleeping state and should be paired with a bed `HouseholdUtility`.
+5. Add household utilities for Bed, Kitchen, Water, and Electricity. Availability is intentionally a simple, accessible gate and can be expanded by later utility systems.
+6. Bind `LifeUIModel.Changed` to UI Toolkit/Canvas bars. Use `Snapshot()` for initial display; do not make UI the authority for values.
+7. Save with `LifePersistence` to a separate `.life.json` payload. Restore only through a trusted local save flow or server-approved online snapshot.
+8. In online mode, route action requests through `ILifeAuthority`. The server must validate actor ownership, action id, amount, cooldown, inventory/food source, and resulting values. Clients must not submit authoritative hunger, health, sleep time, or recovery results.
+
+### Non-punitive recovery / recovery ที่ไม่ลงโทษ
+
+`RecoverSafely()` prevents a stuck or depleted player from becoming permanently unplayable: it raises basic needs to a configurable minimum, restores stamina, and clears sleep state. It does not grant money, items, crop yield, or progression.
+
+## Phase 09 economy setup / การตั้งค่า economy
+
+1. Create `ProductDefinition` assets with stable IDs, bilingual names, weight, and legality. Create a `PriceBook` with buy/sell prices in satang; do not use floating-point money.
+2. Add `Wallet`, `BankAccount`, `Inventory`, `EconomyLedger`, and `EconomyUIModel` to the player/economy scene. Bind UI to `EconomyUIModel.Snapshot()` and `Changed`.
+3. Add `Shop` with a stock `Inventory`, `PriceBook`, and the shared `EconomyLedger`. Purchases and sales roll back inventory/account changes when the ledger rejects the transaction.
+4. Create legal `JobDefinition` assets for civilian, delivery, farming, and repair work. Set wage and experience in satang/configuration; the code does not claim real Thai wages.
+5. Use `JobPayoutService.TryPay` with a server-issued unique `rewardId`. The ledger records an audit entry and rejects a duplicate idempotency key, preventing duplicate rewards after retries.
+6. Route online purchases, sales, wages, delivery rewards, farm income, and repair income through a server-owned `IEconomyAuthority`/`EconomyLedger`. Clients send intent only; they never submit balances, prices, inventory results, or reward completion as authority.
+7. Persist wallet/bank/inventory/ledger state through the project's server persistence layer. The current ledger audit is runtime memory until a durable backend adapter is connected.
+
+### Economy acceptance / เกณฑ์ผ่าน
+
+- Baht values round-trip exactly through integer satang.
+- Wallet prevents overspending and overflow.
+- Shop transactions are atomic across account and inventory changes.
+- PriceBook controls all prices; no price is hard-coded into UI.
+- Only legal jobs can pay wages/rewards.
+- Replaying the same reward ID cannot pay twice.
+- Audit entries record actor, type, amount, reward key, and UTC timestamp.
+
+## Phase 10 property setup / การตั้งค่า property
+
+1. Create `PropertyDefinition` assets with stable property IDs, bilingual names, property type, prices in satang, and an optional interior scene path. Do not use scene object names as ownership IDs.
+2. Add `PropertyRegistry` to the persistent gameplay scene and assign definitions/states. The registry is gameplay state; house meshes, doors, furniture, and interior visuals are presentation.
+3. Use `PropertyTransactionService` with the Phase 09 `Wallet` and `EconomyLedger` for purchases/rents. Failed ledger commits roll back the property reservation.
+4. Add `EnterableDoor` to exterior door visuals. Assign the property ID, registry, streamer, and entry point. Door animation/open state is not ownership; `TryEnter(actor, actorId)` checks owner or tenant first.
+5. Add `InteriorStreamer` to the persistent world. Interior scenes must be additive-compatible, contain their own lighting/navigation setup, and use stable scene paths from the property definition.
+6. Add `FurniturePlacement` to the interior gameplay root. Only the owner can place/remove decorations. Store stable decoration IDs and prefab keys; visuals may be rebuilt from those records after streaming or loading.
+7. Add `PropertyPersistence` to the server/local save flow. Persist property IDs, owner/tenant IDs, purchase/rent flags, and decoration IDs separately from visual scenes.
+8. Add `PropertyUIModel` to property panels. It exposes ownership state for UI but is never an authority source.
+9. In online mode, all purchase, rent, enter, decoration, and ownership changes must be validated server-side. Clients send intent and property ID only; the server checks actor identity, current ownership, price, funds, cooldown, and decoration permissions.
+
+### Property acceptance / เกณฑ์ผ่าน
+
+- Unowned properties can be purchased or rented only through the transaction service.
+- Failed economic commits do not leave ownership/reservation changes behind.
+- Doors reject unauthorized actors even if the visual door is open.
+- Interiors load/unload additively from configured scene paths.
+- Decorations persist by stable IDs and require ownership to change.
+- FarmLand, House, RentalUnit, and Shop share the same property state contract.
+
+## Phase 11 narrative setup / การตั้งค่า narrative
+
+1. Create `QuestDefinition` assets with stable IDs, Thai/English title and summary, prerequisites, objectives, and rewards. Use `QuestWritingPack` as the supplied original writing reference.
+2. The supplied arc contains a prologue plus five main missions: `main_01_return`, `main_02_first_water`, `main_03_seed_memory`, `main_04_market_morning`, and `main_05_new_roof`.
+3. It also contains five side quests: `side_01_bicycle`, `side_02_old_recipe`, `side_03_bridge_lanterns`, `side_04_rice_song`, and `side_05_small_favor`.
+4. Add `StoryStateService`, `QuestService`, and `QuestUIModel` to the persistent narrative scene. Assign NPC relationship storage and optional `ServerQuestAuthority`.
+5. Create `DialogueLine` assets for branches. Use `requiredFlag`, `setFlag`, `nextNodeIds`, and `relationshipDelta` to connect choices without putting story logic in UI prefabs.
+6. Start quests only after prerequisites pass. Advance objectives by stable objective IDs; complete only when all required amounts are met.
+7. Quest completion is replay-safe: `StoryState` records completed quest IDs and rejects a second completion/reward. Online servers must own this state and validate actor identity, objective evidence, reward idempotency, and relationship changes.
+8. Bind `QuestUIModel.Changed` and `DialogueRunner.LineShown` to UI Toolkit/Canvas. UI displays state and sends intent; it does not grant objectives or rewards.
+
+### Narrative acceptance / เกณฑ์ผ่าน
+
+- Thai and English dialogue/title/summary data resolve through the same asset contract.
+- Main quest prerequisites gate the five-mission arc.
+- Side quests can branch independently without duplicating rewards.
+- Objective progress is capped at required amounts.
+- Replaying a completed quest cannot grant money, experience, flags, or relationship rewards twice.
+- Server authority can reject completion intents before reward application.
 
 ## Data accuracy and licensing / ความแม่นยำและใบอนุญาต
 
