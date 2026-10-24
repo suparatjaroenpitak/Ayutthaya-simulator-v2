@@ -1,4 +1,16 @@
-# AYUTTHAYA SIMULATOR — PHASE 01 + PHASE 02 + PHASE 03 + PHASE 04 + PHASE 05 + PHASE 06 + PHASE 07 + PHASE 08 + PHASE 09 + PHASE 10 + PHASE 11
+# AYUTTHAYA SIMULATOR — PHASE 01 + PHASE 02 + PHASE 03 + PHASE 04 + PHASE 05 + PHASE 06 + PHASE 07 + PHASE 08 + PHASE 09 + PHASE 10 + PHASE 11 + PHASE 12 + PHASE 13
+
+## Phase 13 scope / ขอบเขตเฟส 13
+
+Phase 13 adds persistent player and world-state contracts: server-side account/authentication interfaces, offline save slots, durable online repository contracts, versioned player/world envelopes, migration support, atomic temp/backup writes, reconnect recovery, explicit failure results, and UI error hooks for inventory, currency, farm, property, quest, NPC, calendar, weather, and world state.
+
+เฟส 13 เพิ่ม contract สำหรับ state ถาวรของผู้เล่นและโลก: account/authentication ฝั่ง server, offline save slots, repository online แบบ durable, envelope ที่มี schema version, migration, การเขียนแบบ temp/backup, reconnect recovery, failure result ที่ชัดเจน และ UI hook สำหรับ inventory, เงิน, ฟาร์ม, property, quest, NPC, ปฏิทิน, weather และ world state
+
+## Phase 12 scope / ขอบเขตเฟส 12
+
+Phase 12 adds a Unity 6 multiplayer vertical-slice foundation using Unity Netcode for GameObjects: offline/online mode separation, host, client, dedicated-server entry points, lobby count, connection approval, player spawning, owner input, server movement authority, interpolation, validated network interactions, connection status events, and graceful shutdown.
+
+เฟส 12 เพิ่มรากฐาน multiplayer vertical slice สำหรับ Unity 6 ด้วย Netcode for GameObjects: แยก offline/online, host, client, dedicated server, lobby count, connection approval, player spawning, owner input, server authority, interpolation, network interaction ที่ตรวจสอบแล้ว, connection events และ graceful shutdown
 
 ## Phase 11 scope / ขอบเขตเฟส 11
 
@@ -265,6 +277,46 @@ Ground safety uses CharacterController collision resolution plus a non-trigger S
 - Objective progress is capped at required amounts.
 - Replaying a completed quest cannot grant money, experience, flags, or relationship rewards twice.
 - Server authority can reject completion intents before reward application.
+
+## Phase 12 multiplayer setup / การตั้งค่า multiplayer
+
+1. The verified baseline is `com.unity.netcode.gameobjects` `2.7.0` and `com.unity.transport` `2.6.0`. Unity documents NGO as the GameObject/MonoBehaviour networking framework and lists 2.7.0 as released for Unity 6000.0【https://docs.unity3d.com/ja/current/Manual/com.unity.netcode.gameobjects.html】.
+2. Create a persistent scene with one `NetworkManager`, `UnityTransport`, `NetworkSessionManager`, `NetworkConnectionApproval`, `NetworkSpawnPoint`, and `NetworkLobby` object. Register the player prefab and lobby prefab in NetworkManager's NetworkPrefabs list.
+3. Player prefab: add `NetworkObject`, `NetworkPlayerAvatar`, CharacterController/collider, and the existing Somchai visual/controller as presentation children. Only the owner submits input; the server applies movement and writes `ServerPosition`.
+4. Host mode runs server and local client. Client mode connects to the configured address/port. Dedicated server mode runs only the server and spawns player objects on approved connections.
+5. Use Unity Multiplayer Play Mode or two standalone builds for the two-client test: launch one Host and two Clients, verify two player objects spawn, each owner moves only its own avatar, remote avatars interpolate, and disconnect removes the client cleanly.
+6. Add `NetworkInteractable` to networked doors, shops, farm plots, and quest interactors. Clients send interaction intent; the server checks ownership/permission, distance, and an optional `INetworkInteractionValidator`.
+7. Set transport address/port only from trusted configuration. Do not accept client-submitted money, inventory, property ownership, quest rewards, farm state, vehicle state, or world position as authority.
+8. Keep offline scenes free of required NetworkManager dependencies. Systems should call local implementations or no-op adapters when `NetworkMode.Offline` is selected.
+
+### Multiplayer security assumptions / ข้อสมมติด้านความปลอดภัย
+
+This slice assumes the server is authoritative and the client is untrusted. It validates sender identity, owner client ID, movement input bounds, interaction distance, connection count, and connection approval. It does not yet provide authentication, encryption policy, anti-cheat telemetry, persistence conflict resolution, NAT traversal/session discovery, rate limiting, or production DDoS protection; those require the chosen deployment/backend.
+
+## Phase 13 persistence setup / การตั้งค่า persistence
+
+1. Use `PersistentSaveEnvelope` as the versioned unit containing player and world data. Player data includes currency, inventory, property IDs, quest flags, and position; world data includes calendar, weather, NPC state, farm payloads, and property payloads.
+2. Offline mode: add `OfflineSaveSlots`, call `Save(slotId, envelope)` on a safe checkpoint/quit, and call `Load(slotId, out envelope)` before applying state. Writes use a temporary file and retain a `.bak` backup. If both primary and backup fail, surface `CorruptBackup` and keep the current session state.
+3. Add migrations implementing `ISaveMigration` for every schema transition. Never silently deserialize a newer schema; return `MigrationFailed` and require a compatible client or server migration.
+4. Online mode: implement `IAuthenticationProvider` with the chosen identity provider and `IOnlinePersistenceRepository` on the backend. `OnlinePersistenceClient` handles sign-in, load, commit, refresh, and reconnect recovery; the backend must authenticate the token and own all authoritative writes.
+5. Commit online data transactionally using a server revision/expected-revision or equivalent compare-and-swap. On conflict, reload the authoritative snapshot and merge only through explicit server rules; do not overwrite blindly.
+6. Persist inventory, wallet/bank, farm progress, property ownership/decorations, quest flags/completions, NPC persistent state, calendar, and weather as server-owned records. Client payloads are requests, not truth.
+7. Publish `PersistenceResult` through `PersistenceUIModel.ResultChanged` for save spinners, reconnect prompts, migration errors, conflict resolution, and backup warnings.
+
+### Schema example / ตัวอย่าง schema
+
+```json
+{
+  "schemaVersion": 1,
+  "saveId": "slot_01",
+  "player": { "playerId": "account-123", "walletSatang": 125000, "bankSatang": 450000, "inventoryIds": ["rice"], "inventoryQuantities": [12], "propertyIds": ["farm-home"], "questFlags": ["main_intro"], "completedQuests": [] },
+  "world": { "day": 14, "minuteOfDay": 480, "weatherId": "rain", "npcIds": ["natee"], "npcStates": ["home"], "farmPlotJson": [], "propertyJson": [] }
+}
+```
+
+### Deployment and failure handling / การ deploy และ failure
+
+The repository contains client contracts and a local atomic writer, not a production database or identity provider. Deployment must add TLS/authentication, token expiry/refresh, authorization by account ID, idempotency keys, durable audit logging, revision conflicts, backups, retention, monitoring, and restore drills. Treat `NotAuthenticated`, `ValidationFailed`, `Conflict`, `NetworkUnavailable`, `MigrationFailed`, `WriteFailed`, and `CorruptBackup` as distinct user-visible states; never convert them into a silent success.
 
 ## Data accuracy and licensing / ความแม่นยำและใบอนุญาต
 

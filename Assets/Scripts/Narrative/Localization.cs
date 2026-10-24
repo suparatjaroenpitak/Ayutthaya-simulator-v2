@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using AyutthayaSimulator.NPC;
 
 namespace AyutthayaSimulator.Narrative
 {
@@ -27,7 +28,7 @@ namespace AyutthayaSimulator.Narrative
     {
         [SerializeField] private DialogueLine[] nodes = Array.Empty<DialogueLine>();
         [SerializeField] private StoryStateService story;
-        [SerializeField] private NPC.NPCRelationshipStore relationships;
+        [SerializeField] private NPCRelationshipStore relationships;
         public DialogueLine Current { get; private set; }
         public bool Begin(string nodeId) { Current = Find(nodeId); return Current != null && (string.IsNullOrWhiteSpace(Current.requiredFlag) || story != null && story.State.HasFlag(Current.requiredFlag)); }
         public bool Choose(int branchIndex, string npcId)
