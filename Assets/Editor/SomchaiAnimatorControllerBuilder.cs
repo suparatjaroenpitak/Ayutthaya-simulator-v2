@@ -47,8 +47,8 @@ namespace AyutthayaSimulator.Editor
             AnimatorStateTransition sitTransition = root.AddAnyStateTransition(sit); sitTransition.hasExitTime = false; sitTransition.AddCondition(AnimatorConditionMode.If, 0, "Sit");
             AnimatorStateTransition sleepTransition = root.AddAnyStateTransition(sleep); sleepTransition.hasExitTime = false; sleepTransition.AddCondition(AnimatorConditionMode.If, 0, "Sleep");
             AnimatorStateTransition farmTransition = root.AddAnyStateTransition(farm); farmTransition.hasExitTime = false; farmTransition.AddCondition(AnimatorConditionMode.If, 0, "Farm");
-            interact.AddExitTransition(0.9f);
-            jump.AddExitTransition(0.9f);
+            interact.AddExitTransition().exitTime = 0.9f;
+            jump.AddExitTransition().exitTime = 0.9f;
         }
 
         private static void AddParameters(AnimatorController controller)

@@ -33,8 +33,11 @@ namespace AyutthayaSimulator.NPC
                 return;
             }
             if (!agent.enabled) agent.enabled = true;
-            if (!agent.isOnNavMesh && !NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 5f, NavMesh.AllAreas)) return;
-            if (!agent.isOnNavMesh) agent.Warp(hit.position);
+            if (!agent.isOnNavMesh)
+            {
+                if (!NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 5f, NavMesh.AllAreas)) return;
+                agent.Warp(hit.position);
+            }
             if (changed) BeginActivity(entry);
             if (lod == NPCAISimulationLOD.Full && currentSchedule.target != null && Vector3.Distance(transform.position, currentSchedule.target.position) > destinationTolerance)
                 agent.SetDestination(currentSchedule.target.position);

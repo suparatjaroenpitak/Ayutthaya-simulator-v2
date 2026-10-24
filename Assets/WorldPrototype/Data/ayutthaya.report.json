@@ -1,0 +1,50 @@
+{
+  "crs": "EPSG:32647",
+  "scale": "1 Unity unit = 1 projected metre",
+  "elevation": "FLAT PROTOTYPE ONLY: no DEM supplied",
+  "origin": [
+    666112,
+    1585664
+  ],
+  "sources": [
+    {
+      "file": "อยุธยาฝั่งขวา.osm",
+      "sha256": "45191a5c851cfc4f58027cd807a8c6585207e8619d2f97151909e698654d11d1",
+      "attribution": "OpenStreetMap and contributors",
+      "license": "http://opendatacommons.org/licenses/odbl/1-0/"
+    },
+    {
+      "file": "อยุธยาฝั่งซ้าย.osm",
+      "sha256": "20d62088a02beaf7adae0ba4a3fe36de280d694db79e4a2eb725b6dc24490c00",
+      "attribution": "OpenStreetMap and contributors",
+      "license": "http://opendatacommons.org/licenses/odbl/1-0/"
+    }
+  ],
+  "bounds": [
+    {
+      "minlat": 14.34464,
+      "minlon": 100.56413,
+      "maxlat": 14.36726,
+      "maxlon": 100.58292
+    },
+    {
+      "minlat": 14.3409,
+      "minlon": 100.54353,
+      "maxlat": 14.36094,
+      "maxlon": 100.56284
+    }
+  ],
+  "roads": 2600,
+  "surfacePolygons": 313,
+  "excludedBuildings": 15049,
+  "missingNodeWays": 0,
+  "omittedBridgesTunnels": 101,
+  "unprocessedRelations": 133,
+  "limitations": [
+    "Relations/multipolygon holes not imported; closed-way surfaces only.",
+    "Widths without numeric OSM width are gameplay estimates.",
+    "Road joins are ribbon segments, not engineered intersections.",
+    "No height or water depth accuracy claimed.",
+    "Source bounding boxes have a gap; no missing roads are invented."
+  ]
+}

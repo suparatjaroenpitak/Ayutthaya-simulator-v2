@@ -1,5 +1,6 @@
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 using AyutthayaSimulator.Build;
@@ -25,7 +26,7 @@ namespace AyutthayaSimulator.Editor
         private static void Build(BuildTarget target, string path, bool server)
         {
             BuildProfile profile = Selection.activeObject as BuildProfile; if (profile == null) { Debug.LogError("Select a BuildProfile asset."); return; }
-            BuildPlayerOptions options = new BuildPlayerOptions { scenes = profile.scenes, locationPathName = path + "/AyutthayaSimulator.exe", target = target, options = server ? BuildOptions.EnableHeadlessMode : BuildOptions.None };
+            BuildPlayerOptions options = new BuildPlayerOptions { scenes = profile.scenes, locationPathName = path + "/AyutthayaSimulator.exe", target = target, subtarget = (int)(server ? StandaloneBuildSubtarget.Server : StandaloneBuildSubtarget.Player), options = BuildOptions.None };
             BuildReport report = BuildPipeline.BuildPlayer(options); if (report.summary.result != BuildResult.Succeeded) throw new BuildFailedException("Build failed: " + report.summary.result);
             Debug.Log("Build succeeded: " + report.summary.totalSize + " bytes");
         }

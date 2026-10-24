@@ -7,7 +7,8 @@ namespace AyutthayaSimulator.Life
         [SerializeField] private LifeBalanceConfig balance;
         [SerializeField] private LifeClock clock;
         [SerializeField] private MonoBehaviour weatherProvider;
-        public LifeState State { get; private set; }
+        private LifeState state;
+        public ref LifeState State => ref state;
         public event System.Action<LifeState> StateChanged;
         private IWeatherProvider weather;
         private void Awake() { weather = weatherProvider as IWeatherProvider; if (balance != null) State = new LifeState(balance.maxHunger, balance.maxEnergy, balance.maxStamina, balance.maxHealth); }
